@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FriBot · Prototipo de chatbot de Gestión Humana</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+:root{--red:#b3151f;--red2:#8e0f18;--yel:#ffc62b;--bg:#efeceb;--panel:#fff;--ink:#241a1c;--mute:#6d6063;--bot:#fff;--user:#b3151f;--userink:#fff;--line:#e3dcda;--chip:#fff4d6;--chipink:#5b3d00;--paper:#fffdf7;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171214;--panel:#231b1e;--ink:#f4ecec;--mute:#b3a4a7;--bot:#2e2428;--user:#c91d29;--line:#3b2f33;--chip:#3a2e12;--chipink:#ffd76a;--paper:#2b2326;color-scheme:dark}}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 "DM Sans",system-ui,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 14px 32px;display:grid;gap:22px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:860px){.wrap{grid-template-columns:420px minmax(0,1fr);align-items:start;padding-top:32px}}
+.phone{background:var(--panel);border-radius:26px;overflow:hidden;border:1px solid var(--line);box-shadow:0 18px 40px -18px rgba(90,10,15,.45);display:flex;flex-direction:column;height:min(720px,calc(100vh - 40px));min-height:520px}
+.head{background:var(--red);color:#fff;padding:14px 16px;display:flex;gap:12px;align-items:center}
+.av{width:42px;height:42px;border-radius:50%;background:var(--yel);color:var(--red2);display:grid;place-items:center;font:800 17px "Bricolage Grotesque",sans-serif}
+.head b{font:800 18px "Bricolage Grotesque",sans-serif;display:block;line-height:1.1}
+.head small{opacity:.92;font-size:12.5px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#7dff9a;margin-right:5px}
+.note{background:var(--chip);color:var(--chipink);font-size:12.5px;padding:7px 14px;text-align:center}
+#chat{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
+.m{max-width:86%;padding:10px 13px;border-radius:18px;animation:in .22s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.m{animation:none}}
+.b{background:var(--bot);border-bottom-left-radius:5px;align-self:flex-start;border:1px solid var(--line)}
+.u{background:var(--user);color:var(--userink);border-bottom-right-radius:5px;align-self:flex-end}
+.m.wide{max-width:94%;width:94%}
+.typing{display:flex;gap:4px;padding:13px 14px}.typing i{width:7px;height:7px;border-radius:50%;background:var(--mute);animation:bl 1s infinite}.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes bl{0%,60%,100%{opacity:.3}30%{opacity:1}}
+.chips{display:flex;flex-wrap:wrap;gap:7px;padding:10px 12px 4px;background:var(--panel);border-top:1px solid var(--line);max-height:160px;overflow-y:auto}
+.chips:empty{display:none}
+.chips button{font:500 13.5px "DM Sans",sans-serif;background:var(--chip);color:var(--chipink);border:1px solid var(--yel);border-radius:999px;padding:7px 13px;cursor:pointer}
+.chips button:hover{background:var(--yel);color:#3b2600}
+button:focus-visible,input:focus-visible{outline:3px solid var(--yel);outline-offset:2px}
+form{display:flex;gap:8px;padding:10px 12px 12px;background:var(--panel)}
+input{flex:1;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:10px 15px}
+.send{background:var(--red);color:#fff;border:0;border-radius:999px;padding:0 18px;font:700 14px "DM Sans",sans-serif;cursor:pointer}
+.doc{background:var(--paper);border:1px dashed var(--mute);border-radius:10px;padding:12px 13px;margin-top:8px;position:relative;overflow:hidden}
+.doc h4{margin:0 0 6px;font:800 15px "Bricolage Grotesque",sans-serif;color:var(--red)}
+.doc p{margin:4px 0;font-size:13.5px}
+.doc .sello{position:absolute;right:-26px;top:14px;transform:rotate(30deg);background:var(--yel);color:#3b2600;font:700 11px "DM Sans",sans-serif;padding:2px 30px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:13.5px;margin-top:6px}.kv span{color:var(--mute)}
+.tag{display:inline-block;background:#e6f6ea;color:#17622d;border-radius:6px;padding:1px 8px;font-size:12px;font-weight:700}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .tag{background:#173a22;color:#8ee6a6}}
+aside h2{font:800 24px/1.15 "Bricolage Grotesque",sans-serif;margin:4px 0 6px}
+aside p.lead{color:var(--mute);margin:0 0 16px}
+ol.pasos{list-style:none;counter-reset:p;margin:0 0 20px;padding:0;display:grid;gap:10px}
+ol.pasos li{counter-increment:p;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px 12px 52px;position:relative}
+ol.pasos li:before{content:counter(p);position:absolute;left:13px;top:12px;width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;font:800 14px "Bricolage Grotesque",sans-serif}
+ol.pasos b{display:block}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:440px;font-size:13.5px}th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line)}tr:last-child td{border-bottom:0}th{background:var(--chip);color:var(--chipink)}
+.part{display:flex;gap:8px;align-items:center;padding:8px 14px;background:var(--panel);border-bottom:1px solid var(--line);font-size:13px;color:var(--mute)}.part input{padding:6px 12px}
+.reg{margin-top:20px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}.reg h3{margin:0 0 6px;font:800 18px "Bricolage Grotesque",sans-serif}.reg p{margin:0 0 10px;color:var(--mute);font-size:13.5px}.reg button{font:500 13.5px "DM Sans",sans-serif;background:var(--red);color:#fff;border:0;border-radius:999px;padding:8px 14px;cursor:pointer;margin:0 6px 6px 0}.reg button.sec{background:var(--chip);color:var(--chipink);border:1px solid var(--yel)}#rc{font-size:13px;color:var(--mute)}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="phone" aria-label="Chat con FriBot">
+  <div class="head"><div class="av" aria-hidden="true">F</div><div><b>FriBot</b><small><span class="dot"></span><span id="est">Disponible 24/7</span></small></div></div>
+  <div class="note">Prototipo académico · datos ficticios</div>
+  <div class='part'><label for='pn'>Participante</label><input id='pn' placeholder='Tu nombre o código' autocomplete='off' maxlength='40'></div>
+  <div id="chat" aria-live="polite"></div>
+  <div class="chips" id="chips"></div>
+  <form id="f"><input id="t" autocomplete="off" placeholder="Escribe tu mensaje…" aria-label="Mensaje"><button class="send">Enviar</button></form>
+</section>
+<aside>
+  <h2>Cómo atendería FriBot fuera del horario laboral</h2>
+  <p class="lead">El bot no reemplaza a Gestión Humana: recibe, valida y registra a cualquier hora, y deja lo que necesita criterio humano listo para resolver en horario laboral.</p>
+  <ol class="pasos">
+    <li><b>Identifica a la persona</b>Documento y código de verificación enviado a su WhatsApp.</li>
+    <li><b>Entiende la solicitud</b>Pide solo los datos necesarios, con preguntas cortas.</li>
+    <li><b>Genera o registra</b>El certificado sale de una plantilla conectada al sistema de nómina; vacaciones y reclamos quedan como solicitud con número.</li>
+    <li><b>Una persona decide lo sensible</b>Aprobaciones y reclamos llegan al jefe del restaurante o a Nómina, con plazo definido.</li>
+    <li><b>Avisa el resultado</b>Respuesta por WhatsApp y correo, sin que el colaborador tenga que ir a una oficina.</li>
+  </ol>
+  <div class="tw"><table>
+    <tr><th>Solicitud</th><th>Lo que hace el bot</th><th>Quién decide</th></tr>
+    <tr><td>Certificado laboral</td><td>Verifica y genera el documento</td><td>Nadie (automático)</td></tr>
+    <tr><td>Saldo de vacaciones</td><td>Consulta y responde</td><td>Nadie (automático)</td></tr>
+    <tr><td>Solicitud de vacaciones</td><td>Registra y notifica</td><td>Jefe del restaurante</td></tr>
+    <tr><td>Reclamo de nómina</td><td>Registra con evidencia</td><td>Equipo de Nómina</td></tr>
+    <tr><td>Caso sensible</td><td>Escala sin opinar</td><td>Gestión Humana</td></tr>
+  </table></div>
+<div class='reg'><h3>Registro de la simulación</h3><p>Cada mensaje queda guardado en este dispositivo con fecha, hora y el nombre del participante. Avisa a quienes participen que sus mensajes se registran para el trabajo, y usa apodos o códigos. Para unir los resultados, cada persona descarga su archivo y se lo envía a quien consolida. La descarga funciona en el archivo descargado, no en el enlace publicado.</p><button id='dl' type='button'>Descargar registro (CSV)</button><button id='cp' type='button' class='sec'>Copiar</button><button id='cl' type='button' class='sec'>Borrar</button><div id='rc'></div></div>
+</aside>
+</main>
+<script>
+const $=s=>document.querySelector(s),chat=$('#chat'),chips=$('#chips'),inp=$('#t');
+const MENU=["Certificado laboral","Vacaciones","Reclamo de nómina","Beneficios","Procesos de Gestión Humana","Universidad Frisby","Mis turnos","Hablar con una persona","Terminar y calificar"];
+const rnd=()=>Math.floor(1000+Math.random()*9000);
+let st={step:null,d:{}};
+(function(){const n=new Date(),h=n.getHours(),w=n.getDay();if(h<8||h>=17||w===0||w===6)$('#est').textContent="Gestión Humana está cerrada · FriBot te atiende";})();
+function scroll(){chat.scrollTop=chat.scrollHeight}
+function user(t){const e=document.createElement('div');e.className='m u';e.textContent=t;chat.appendChild(e);chips.innerHTML='';rec('Participante',t);scroll()}
+function bot(html,opts,wide){
+  const ty=document.createElement('div');ty.className='m b typing';ty.innerHTML='<i></i><i></i><i></i>';chat.appendChild(ty);scroll();
+  setTimeout(()=>{ty.remove();const e=document.createElement('div');e.className='m b'+(wide?' wide':'');e.innerHTML=html;chat.appendChild(e);rec('FriBot',html);
+    chips.innerHTML='';(opts||[]).forEach(o=>{const b=document.createElement('button');b.type='button';b.textContent=o;b.onclick=()=>{user(o);route(o)};chips.appendChild(b)});scroll()},650);
+}
+function home(msg){st.step=null;bot(msg||"¿En qué más te puedo ayudar?",MENU)}
+const H={
+"Certificado laboral":()=>bot("Claro. ¿Qué tipo de certificado necesitas?",["Con salario","Sin salario","Con funciones"]),
+"Con salario":()=>askId("Con salario"),"Sin salario":()=>askId("Sin salario"),"Con funciones":()=>askId("Con funciones"),
+"Vacaciones":()=>bot("¿Qué quieres hacer?",["Consultar saldo","Solicitar vacaciones"]),
+"Consultar saldo":()=>{bot('Tienes <b>8 días hábiles</b> de vacaciones disponibles <span class="tag">dato ficticio</span>',["Solicitar vacaciones","Volver al inicio"])},
+"Solicitar vacaciones":()=>{st.step='vac';bot("Escribe las fechas que quieres, por ejemplo: <i>del 10 al 17 de diciembre</i>.")},
+"Reclamo de nómina":()=>bot("Lamento el inconveniente. ¿Sobre qué es tu reclamo?",["Horas extra","Recargo nocturno o dominical","Un descuento que no entiendo","Otro tema"]),
+"Horas extra":()=>nomAsk("Horas extra"),"Recargo nocturno o dominical":()=>nomAsk("Recargo nocturno o dominical"),"Un descuento que no entiendo":()=>nomAsk("Descuento"),"Otro tema":()=>nomAsk("Otro"),
+"Universidad Frisby":()=>bot("Estos son los programas técnicos que podrías ver, con horarios pensados para quienes trabajan por turnos:",["Técnico en Administración y Operación en Restaurantes","Técnico en Mecánica de Maquinaria Industrial"]),
+"Técnico en Administración y Operación en Restaurantes":()=>prog("Administración y Operación en Restaurantes"),
+"Técnico en Mecánica de Maquinaria Industrial":()=>prog("Mecánica de Maquinaria Industrial"),
+"Mis turnos":()=>bot('Tu semana <span class="tag">ejemplo ficticio</span><div class="doc"><div class="kv"><span>Lun–Mié</span>6:00 a. m. – 2:00 p. m.<span>Jue</span>Descanso<span>Vie–Sáb</span>2:00 p. m. – 10:00 p. m.</div></div>Si necesitas un cambio de turno, puedo dejar la solicitud para tu jefe.',["Pedir cambio de turno","Volver al inicio"],1),
+"Pedir cambio de turno":()=>{st.step='turno';bot("Cuéntame en una frase qué cambio necesitas y por qué.")},
+"Hablar con una persona":()=>bot('Te paso con Gestión Humana. Tu caso queda registrado con el número <b>GH-'+rnd()+'</b> y te contactan en el siguiente horario de atención <span class="tag">simulado</span>. Los temas sensibles los atiende siempre una persona.',["Volver al inicio"]),
+"Volver al inicio":()=>home("Listo. ¿Qué necesitas?"),
+"Beneficios":()=>bot("Estos son los beneficios que puedo explicarte. Cada respuesta indica si es información pública de Frisby o contenido simulado para el prototipo.",["Fondo de empleados","Capacitación y Universidad Frisby","Bienestar y salud","Alimentación en el turno","Volver al inicio"]),
+"Fondo de empleados":()=>bot("Frisby cuenta con un fondo de empleados al que puedes vincularte para ahorrar y acceder a créditos. "+PUB+"<br>Los montos, requisitos y fechas de inscripción de este prototipo son de ejemplo. "+SIM,["Beneficios","Volver al inicio"]),
+"Capacitación y Universidad Frisby":()=>bot("Puedes acceder a capacitación técnica y de desarrollo humano, y a los programas de la Universidad Frisby. "+PUB,["Universidad Frisby","Beneficios"]),
+"Bienestar y salud":()=>bot("Habría jornadas de bienestar, pausas activas durante el turno y una línea de apoyo psicosocial. "+SIM,["Beneficios","Volver al inicio"]),
+"Alimentación en el turno":()=>bot("Aquí te explicaría cómo funciona la alimentación durante tu turno y a quién acudir si tienes dudas. "+SIM,["Beneficios","Volver al inicio"]),
+"Procesos de Gestión Humana":()=>bot("¿Qué proceso quieres conocer?",["Selección y contratación","Inducción","Promoción interna","Evaluación y retroalimentación","Volver al inicio"]),
+"Selección y contratación":()=>bot("<b>Cómo es el proceso</b><br>1. Te postulas desde el sitio web, en la sección Trabaja con nosotros. "+PUB+"<br>2. Revisión de tu hoja de vida.<br>3. Entrevista.<br>4. Verificación de referencias.<br>5. Contratación e ingreso. "+SIM,["Inducción","Procesos de Gestión Humana"]),
+"Inducción":()=>bot("<b>Tu primer día</b><br>Bienvenida, recorrido del restaurante, entrega de dotación, capacitación en servicio y seguridad, y un compañero guía durante las primeras semanas. "+SIM,["Beneficios","Procesos de Gestión Humana"]),
+"Promoción interna":()=>bot("Frisby impulsa que las vacantes se llenen con su propia gente: fuentes públicas hablan de que cerca del 80% de las vacantes de rotación interna las ocupan colaboradores. "+PUB+"<br>Los requisitos para postularte en este prototipo son de ejemplo. "+SIM,["Universidad Frisby","Procesos de Gestión Humana"]),
+"Evaluación y retroalimentación":()=>bot("Tu líder te daría retroalimentación periódica sobre tu desempeño y podrías ver tus metas desde este chat. "+SIM,["Procesos de Gestión Humana","Volver al inicio"]),
+"Terminar y calificar":()=>survey(),
+"Nueva encuesta":()=>survey(),
+"Ver resultados del grupo":()=>encGrupo()
+};
+const T=s=>"<span class='tag'>"+s+"</span>",SIM=T("simulado"),PUB=T("información pública");
+const Q=[["Claridad","¿Qué tan claras fueron las respuestas del bot?"],["Utilidad","¿Qué tan útil te pareció para resolver tus dudas?"],["Confianza","¿Qué tanta confianza te daría para hacer tus solicitudes por aquí?"],["Tono","¿Qué tal te pareció el tono: cercano y fácil de entender?"],["Mejoras","¿Qué mejorarías? Escríbelo con tus palabras."]];
+const RESP=[];
+function survey(){st.step='enc';st.d.enc={a:[],i:0};encAsk()}
+function encAsk(){const e=st.d.enc,q=Q[e.i];const intro=e.i===0?"¡Gracias por probar FriBot! Son 5 preguntas breves. En las primeras cuatro, 1 es muy mal y 5 es excelente.<br><br>":"";bot(intro+"<b>"+(e.i+1)+" de 5 · "+q[0]+"</b><br>"+q[1],e.i<4?["1","2","3","4","5"]:["Sin sugerencias"])}
+function encAns(t){const e=st.d.enc;if(e.i<4){const n=parseInt(t,10);if(!(n>=1&&n<=5))return bot("Responde con un número del 1 al 5.",["1","2","3","4","5"]);e.a.push(n)}else e.a.push(t.replace(/</g,'&lt;'));e.i++;if(e.i<5)return encAsk();encEnd()}
+function encEnd(){const a=st.d.enc.a;st.step=null;RESP.push(a);const prom=((a[0]+a[1]+a[2]+a[3])/4).toFixed(1);rec('Encuesta','Claridad='+a[0]+'; Utilidad='+a[1]+'; Confianza='+a[2]+'; Tono='+a[3]+'; Promedio='+prom+'; Mejoras='+a[4]);
+  bot("¡Gracias! Así quedó tu encuesta:<div class='doc'><h4>Resultado de la encuesta</h4><div class='kv'><span>Claridad</span>"+a[0]+" / 5<span>Utilidad</span>"+a[1]+" / 5<span>Confianza</span>"+a[2]+" / 5<span>Tono</span>"+a[3]+" / 5<span>Promedio</span><b>"+prom+" / 5</b><span>Mejoras</span>"+a[4]+"</div></div>Respuestas en esta sesión: "+RESP.length+".",["Nueva encuesta","Ver resultados del grupo","Volver al inicio"],1)}
+function encGrupo(){const n=RESP.length;if(!n)return bot("Todavía no hay encuestas en esta sesión.",["Terminar y calificar","Volver al inicio"]);
+  const av=i=>(RESP.reduce((s,r)=>s+r[i],0)/n).toFixed(1);const mej=RESP.map(r=>r[4]).filter(x=>x&&x!=="Sin sugerencias");
+  bot("<div class='doc'><h4>Resultados del grupo ("+n+" respuestas)</h4><div class='kv'><span>Claridad</span>"+av(0)+" / 5<span>Utilidad</span>"+av(1)+" / 5<span>Confianza</span>"+av(2)+" / 5<span>Tono</span>"+av(3)+" / 5</div><p><b>Mejoras sugeridas</b></p>"+(mej.length?mej.map(m=>"<p>• "+m+"</p>").join(""):"<p>Sin sugerencias.</p>")+"</div>Estos datos solo viven en esta pestaña: toma captura antes de cerrarla o recargarla.",["Nueva encuesta","Volver al inicio"],1)}
+const LOG=(()=>{try{return JSON.parse(localStorage.getItem('fribotlog')||'[]')}catch(e){return[]}})();
+function updRc(){$('#rc').textContent=LOG.length+' mensajes registrados'}
+function sv(){try{localStorage.setItem('fribotlog',JSON.stringify(LOG))}catch(e){}updRc()}
+function rec(w,x){const p=($('#pn').value||'sin nombre').trim();LOG.push({t:new Date().toISOString(),p:p,w:w,x:String(x).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim()});sv()}
+function csv(){const q=s=>'"'+String(s).replace(/"/g,'""')+'"';return '\ufefffecha_hora,participante,emisor,mensaje\n'+LOG.map(r=>[r.t,r.p,r.w,r.x].map(q).join(',')).join('\n')}
+$('#dl').onclick=()=>{if(!LOG.length){$('#rc').textContent='Todavía no hay mensajes para descargar';return}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv()],{type:'text/csv;charset=utf-8'}));a.download='registro-fribot-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove()};
+$('#cp').onclick=async()=>{try{await navigator.clipboard.writeText(csv());$('#rc').textContent='Registro copiado'}catch(e){$('#rc').textContent='No se pudo copiar; usa Descargar'}};
+$('#cl').onclick=()=>{if(confirm('¿Borrar el registro de este dispositivo?')){LOG.length=0;sv()}};
+updRc();
+function askId(t){st.d.tipo=t;st.step='id';bot("Para proteger tus datos, escribe los <b>últimos 4 dígitos de tu documento</b>. (En el prototipo sirve cualquier número.)")}
+function cert(){const code='FRI-'+rnd()+'-'+rnd();st.step=null;
+  bot('Verificado. Aquí está tu certificado:<div class="doc"><span class="sello">SIMULADO</span><h4>Certificación laboral</h4><p>Frisby S.A. certifica que <b>Colaborador de Prueba</b> labora como <b>auxiliar de preparación</b> con contrato a término indefinido.</p><div class="kv"><span>Tipo</span>'+st.d.tipo+'<span>Código</span>'+code+'</div></div>En producción llegaría como PDF a tu WhatsApp y correo, con código para verificarlo.',["Otro certificado","Volver al inicio"],1)}
+H["Otro certificado"]=H["Certificado laboral"];
+function ticket(pref,titulo,plazo,extra){const n=pref+'-'+rnd();st.step=null;
+  bot('Listo, quedó registrado.<div class="doc"><h4>'+titulo+'</h4><div class="kv"><span>Número</span><b>'+n+'</b><span>Estado</span>Enviada<span>Plazo</span>'+plazo+'</div>'+(extra?'<p>'+extra+'</p>':'')+'</div>Te aviso por WhatsApp apenas haya respuesta, aunque sea fuera de tu turno.',["Volver al inicio"],1)}
+function nomAsk(c){st.d.cat=c;st.step='nom';bot("Cuéntame en una frase qué pasó y en qué quincena. Si tienes tu desprendible, lo adjuntarías aquí.")}
+function prog(p){bot('Te dejé una <b>pre-inscripción</b> en <i>'+p+'</i>. Un asesor confirma horarios compatibles con tu turno <span class="tag">simulado</span>.',["Volver al inicio"])}
+function route(t){
+  if(st.step==='enc')return encAns(t);
+  if(!st.step&&!H[t]&&/benefic/i.test(t))return H["Beneficios"]();
+  if(st.step==='id'&&/\d{4}/.test(t))return cert();
+  if(st.step==='id')return bot("Necesito 4 dígitos, por ejemplo <b>1234</b>.");
+  if(st.step==='vac')return ticket('VAC','Solicitud de vacaciones','Respuesta de tu jefe en máx. 3 días hábiles','Fechas: '+t.replace(/</g,'&lt;'));
+  if(st.step==='nom')return ticket('NOM','Reclamo de nómina · '+st.d.cat,'Respuesta de Nómina en máx. 48 horas hábiles','Se adjuntó tu relato al caso.');
+  if(st.step==='turno')return ticket('TUR','Solicitud de cambio de turno','Respuesta de tu jefe en máx. 2 días hábiles','');
+  if(H[t])return H[t]();
+  const k=t.toLowerCase();
+  if(/certific/.test(k))return H["Certificado laboral"]();
+  if(/vacac/.test(k))return H["Vacaciones"]();
+  if(/n[oó]mina|pago|descuento/.test(k))return H["Reclamo de nómina"]();
+  if(/acoso|maltrato|amenaz|demanda|despid|salud/.test(k))return H["Hablar con una persona"]();
+  bot("No estoy seguro de haberte entendido. Elige una opción o escribe con otras palabras.",MENU);
+}
+$('#f').onsubmit=e=>{e.preventDefault();const v=inp.value.trim();if(!v)return;inp.value='';user(v);route(v)};
+bot("¡Hola! Soy <b>FriBot</b>, el asistente de Gestión Humana de Frisby. Puedo ayudarte a cualquier hora, también fuera de tu turno. ¿Qué necesitas?",MENU);
+</script>
+</body>
+</html>
